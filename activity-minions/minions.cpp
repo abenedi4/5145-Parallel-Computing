@@ -3,7 +3,11 @@
 #include <vector>
 //Method to say minion greeting based on x iteration
 void greeting(int x) {
-  std::cout<<"Hello! I am minion "<<x<<"\n";
+  if(x < 41) {
+    std::cout<<"Hello! I am minion "<<x<<"\n";
+  } else {
+    std::cout<<"Hello Minions! I am the Overlord!"<<"\n";
+  }
 }
 
 int main (int argc, char** argv) {
@@ -28,7 +32,7 @@ int main (int argc, char** argv) {
 }
 
   //Print last Overlord message
-  std::cout<<"Hello Minions! I am the Overlord!"<<"\n";
-
+  std::thread ovld(greeting, 41);
+  ovld.join();
   return 0;
 }
