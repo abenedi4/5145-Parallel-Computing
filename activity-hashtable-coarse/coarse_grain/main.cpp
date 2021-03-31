@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 
   // Do not touch this, need for test cases
   //std::cout << ht.get(testWord) << std::endl;
-  std::cout << time_elapsed.count();
+  std::cerr << time_elapsed.count();
   return 0;
 }
 
