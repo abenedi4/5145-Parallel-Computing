@@ -99,14 +99,19 @@ int main(int argc, char **argv)
     mythreads.emplace_back(std::thread(populate, std::ref(dict), std::ref(filecontent), std::ref(mu)));
   }
 
+
+  // std::cout<<"Finished threads";
+  // Stop Timer
+  auto stop = std::chrono::steady_clock::now();
+
+  
   //Wait for threads to finish
   for(auto& thread : mythreads){
     thread.join();
   }
 
-  // std::cout<<"Finished threads";
-  // Stop Timer
-  auto stop = std::chrono::steady_clock::now();
+
+
   std::chrono::duration<double> time_elapsed = stop-start;
 
   std::cerr << time_elapsed.count()<<"\n";
