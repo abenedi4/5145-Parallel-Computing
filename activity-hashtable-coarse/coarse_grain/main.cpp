@@ -46,8 +46,9 @@ std::vector<std::vector<std::string>> tokenizeLyrics(const std::vector<std::stri
 //Function to call for each thread - populate dictionary
 void populate( Dictionary<std::string, int>& dict, std::vector<std::string>& filecontent, std::mutex& mut){
 
-    std::lock_guard<std::mutex> lg(mut);    
+
     for (auto & w : filecontent) {
+      std::lock_guard<std::mutex> lg(mut);    
       int count = dict.get(w);
       ++count;
       dict.set(w, count);
@@ -100,9 +101,6 @@ int main(int argc, char **argv)
   }
 
 
-  // std::cout<<"Finished threads";
-  // Stop Timer
-  auto stop = std::chrono::steady_clock::now();
 
   
   //Wait for threads to finish
@@ -111,6 +109,9 @@ int main(int argc, char **argv)
   }
 
 
+  // std::cout<<"Finished threads";
+  // Stop Timer
+  auto stop = std::chrono::steady_clock::now();
 
   std::chrono::duration<double> time_elapsed = stop-start;
 
