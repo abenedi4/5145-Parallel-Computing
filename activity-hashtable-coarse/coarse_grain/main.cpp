@@ -46,9 +46,8 @@ std::vector<std::vector<std::string>> tokenizeLyrics(const std::vector<std::stri
 //Function to call for each thread - populate dictionary
 void populate( Dictionary<std::string, int>& dict, std::vector<std::string>& filecontent, std::mutex& mut){
 
-    
+    std::lock_guard<std::mutex> lg(mut);    
     for (auto & w : filecontent) {
-      std::lock_guard<std::mutex> lg(mut);
       int count = dict.get(w);
       ++count;
       dict.set(w, count);
@@ -110,7 +109,7 @@ int main(int argc, char **argv)
   auto stop = std::chrono::steady_clock::now();
   std::chrono::duration<double> time_elapsed = stop-start;
 
-
+  std::cerr << time_elapsed.count()<<"\n";
 
   // Check Hash Table Values 
   /* for (auto it : dict) {
@@ -120,7 +119,7 @@ int main(int argc, char **argv)
 
   // Do not touch this, need for test cases
   std::cout << ht.get(testWord) << std::endl;
-  std::cerr << time_elapsed.count();
+
   return 0;
 }
 
