@@ -97,7 +97,7 @@ int main(int argc, char **argv)
   
   //loop through each file and create a thread calling populate function
   for (auto & filecontent: wordmap) {
-    mythreads.emplace_back(std::thread(populate, std::ref(dict), std::ref(filecontent), std::ref(mu)));
+    mythreads.push_back(std::thread(populate, std::ref(dict), std::ref(filecontent), std::ref(mu)));
   }
 
 
