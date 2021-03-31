@@ -48,10 +48,11 @@ void populate( Dictionary<std::string, int>& dict, std::vector<std::string>& fil
 
 
     for (auto & w : filecontent) {
-      std::lock_guard<std::mutex> lg(mut);    
+      mut.lock(); 
       int count = dict.get(w);
       ++count;
       dict.set(w, count);
+	mut.unlock();
       
     }
   
