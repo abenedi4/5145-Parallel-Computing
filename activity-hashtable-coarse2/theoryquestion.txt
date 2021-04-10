@@ -1,0 +1,10 @@
+The reasoning for the processing time speedup to be much larger on 1 processor 
+and drop for 2 or more processors is because when having 2 or more processors, it is
+more likely to produce more wait time. This is because with mutexes, only one thread can access 
+it at a time, anyways. This can be thought of like a toll road. If there is one toll booth and one lane, it will 
+be more efficient since the lineup of cars can go through one by one in an orderly fashion. If there 
+are multiple lanes and only one toll booth, then cars will be more disorderly by trying to merge into one 
+lane, thus being less efficient and creating more wait time for all the cars overall. This is the same 
+with the multiple threads trying to access one area of memory which is locked by a mutex. The more 
+processors being used means there are more threads ready to access that piece of memory but will have 
+to wait, thus decreasing the efficiency of the compilation. 
