@@ -2,9 +2,10 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-
+#include <thread>
 #include "Dictionary.hpp"
 #include "MyHashtable.hpp"
+#include <mutex>
 
 //Tokenize a string into individual word, removing punctuation at the
 //end of words
@@ -45,7 +46,21 @@ std::vector<std::vector<std::string>> tokenizeLyrics(const std::vector<std::stri
   return ret;
 }
 
+//Function to call for each thread - populate dictionary
+void populate( Dictionary<std::string, int>& dict, std::vector<std::string>& filecontent){
 
+
+    for (auto & w : filecontent) {
+      
+      int count = dict.get(w);
+      ++count;
+      dict.set(w, count);
+
+      
+    }
+  
+
+}
 
 int main(int argc, char **argv)
 {
@@ -78,6 +93,34 @@ int main(int argc, char **argv)
   // write code here
 
 
+  // create vector of threads
+  std::vector<std::thread> mythreads;
+  
+  
+  // Start Timer
+  auto start =std::chrono::steady_clock::now();
+  
+  //loop through each file and create a thread calling populate function
+  for (auto & filecontent: wordmap) {
+    mythreads.push_back(std::thread(populate, std::ref(dict), std::ref(filecontent)));
+  }
+
+
+
+  
+  //Wait for threads to finish
+  for(auto& thread : mythreads){
+    thread.join();
+  }
+
+
+  // std::cout<<"Finished threads";
+  // Stop Timer
+  auto stop = std::chrono::steady_clock::now();
+
+  std::chrono::duration<double> time_elapsed = stop-start;
+
+  std::cerr << time_elapsed.count()<<"\n";
 
 
 

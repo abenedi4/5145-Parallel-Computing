@@ -4,7 +4,8 @@
 #include <functional>
 #include <iostream>
 #include <vector>
-
+#include <mutex>
+#include <condition_variable>
 template<class K, class V>
 struct Node {
   K key;
@@ -21,9 +22,14 @@ struct Node {
 
 template<class K, class V>
 class MyHashtable : public Dictionary<K, V> {
+  
 protected:
   typedef typename Dictionary<K, V>::dict_iter dict_iter;
+  std::mutex mut;
+  std::condition_variable_any cond;
+  bool done = false;
 
+  
   int capacity;
   int count;
   double loadFactor;
@@ -104,6 +110,7 @@ public:
    * @return node of type Node at key
    */
   virtual V get(const K& key) const {
+    
     std::size_t index = std::hash<K>{}(key) % this->capacity;
     index = index < 0 ? index + this->capacity : index;
     const Node<K,V>* node = this->table[index];
@@ -113,6 +120,7 @@ public:
 	      return node->value;
       node = node->next;
     }
+   
     return V();
   }
 
@@ -125,10 +133,12 @@ public:
     std::size_t index = std::hash<K>{}(key) % this->capacity;
     index = index < 0 ? index + this->capacity : index;
     Node<K,V>* node = this->table[index];
-    
+
     while (node != nullptr) {
       if (node->key == key) {
+ 	      mut.lock();
 	      node->value = value;
+	      mut.unlock();
 	      return;
       }
       node = node->next;
@@ -142,6 +152,7 @@ public:
     if (((double)this->count)/this->capacity > this->loadFactor) {
       this->resize(this->capacity * 2);
     }
+   
   }
 
   /**
