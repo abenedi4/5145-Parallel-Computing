@@ -35,7 +35,7 @@ protected:
   int count;
   double loadFactor;
   std::vector<Node<K,V>*> table;
-  mutable std::array<std::mutex, 10000> muts; //make this array
+  mutable std::array<std::mutex, 256> muts; //make this array
 
   
   struct hashtable_iter : public dict_iter {
@@ -154,9 +154,9 @@ public:
 
 
   
-  //if value passed is -1, then get
-  //if value is not -1, set
-  virtual V getSet(const K& key, const V& value){
+  //updates key passed in if found, else creates a new node with value 1
+  virtual void getSet(const K& key){
+    //Lock bucket based on index
     std::mutex &m = muts[std::hash<K>{}(key) % muts.size()];
     
     std::lock_guard<std::mutex> lg(m);
@@ -165,51 +165,33 @@ public:
     index = index < 0 ? index + this->capacity : index;
     Node<K,V>* node = this->table[index];
 
-   
+    //find node and increment by one
     while (node != nullptr) {
       
       if (node->key == key) {
 
-	if (value == -1) {
-	  return node->value;
-	} else {
-	  node->value = value;
-	  return -1;
-	}
-
-	
-      }
+	  node->value += 1;
+	  return;
+	} 	
+      
 
       node = node->next;
 
     }
 
-    if (value == -1) {
-      return V();
-    } else {
+      
+    
        //if we get here, then the key has not been found
-      node = new Node<K,V>(key, value);
+      node = new Node<K,V>(key, 1);
       node->next = this->table[index];
       this->table[index] = node;
       this->count++;
       if (((double)this->count)/this->capacity > this->loadFactor) {
 	this->resize(this->capacity * 2);
       }
-
-    }
-    
-    return -1;
-
     
   }
 
-  
-  /* void all_done() {
-    mut.lock();
-    //done = true;
-    cond.notify_all();
-    mut.unlock();
-    }*/
   
   /**
    * deletes the node at given key

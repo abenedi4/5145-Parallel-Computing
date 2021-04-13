@@ -51,12 +51,7 @@ void populate( Dictionary<std::string, int>& dict, std::vector<std::string>& fil
 
 
     for (auto & w : filecontent) {
-      
-      int count = dict.getSet(w, -1);
-      ++count;
-      dict.getSet(w, count);
-
-      
+      dict.getSet(w);   
     }
   
 

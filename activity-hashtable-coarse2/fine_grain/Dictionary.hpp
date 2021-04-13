@@ -58,7 +58,7 @@ public:
    */
   virtual void set(const K& key, const V& value) = 0;
 
-  virtual V getSet(const K& key, const V& value) = 0;
+  virtual void getSet(const K& key) = 0;
 
   
   /**
