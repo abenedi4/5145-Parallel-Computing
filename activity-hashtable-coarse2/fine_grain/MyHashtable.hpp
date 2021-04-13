@@ -7,6 +7,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <pthread.h>
+#include <array>
 template<class K, class V>
 struct Node {
   K key;
@@ -23,18 +24,20 @@ struct Node {
 
 template<class K, class V>
 class MyHashtable : public Dictionary<K, V> {
- mutable std::mutex muts[256]; //make this array
+
 
 protected:
   typedef typename Dictionary<K, V>::dict_iter dict_iter;
-
+  
 
   
   int capacity;
   int count;
   double loadFactor;
   std::vector<Node<K,V>*> table;
+  mutable std::array<std::mutex, 10000> muts; //make this array
 
+  
   struct hashtable_iter : public dict_iter {
     MyHashtable& mt;
     int bucket;
@@ -154,15 +157,17 @@ public:
   //if value passed is -1, then get
   //if value is not -1, set
   virtual V getSet(const K& key, const V& value){
-
+    std::mutex &m = muts[std::hash<K>{}(key) % muts.size()];
+    
+    std::lock_guard<std::mutex> lg(m);
 
     std::size_t index = std::hash<K>{}(key) % this->capacity;
     index = index < 0 ? index + this->capacity : index;
     Node<K,V>* node = this->table[index];
-    int bucket_temp = std::hash<K>{}(key) % this->capacity;
 
-    muts[bucket_temp].lock();
+   
     while (node != nullptr) {
+      
       if (node->key == key) {
 
 	if (value == -1) {
@@ -192,8 +197,10 @@ public:
       }
 
     }
-    muts[bucket_temp].unlock();
+    
     return -1;
+
+    
   }
 
   
