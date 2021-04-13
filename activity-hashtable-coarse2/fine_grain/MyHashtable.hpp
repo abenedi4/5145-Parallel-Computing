@@ -6,6 +6,7 @@
 #include <vector>
 #include <mutex>
 #include <condition_variable>
+#include <pthread.h>
 template<class K, class V>
 struct Node {
   K key;
@@ -22,12 +23,11 @@ struct Node {
 
 template<class K, class V>
 class MyHashtable : public Dictionary<K, V> {
-  
+ mutable std::mutex muts[256]; //make this array
+
 protected:
   typedef typename Dictionary<K, V>::dict_iter dict_iter;
-  std::mutex mut;
-  std::condition_variable_any cond;
-  bool done = false;
+
 
   
   int capacity;
@@ -102,15 +102,13 @@ protected:
     std::swap(this->capacity, temp_table.capacity);
     std::swap(this->table, temp_table.table); 
   }
-
-public:
-  /**
-   * Returns the node at key
-   * @param key key of node to get
-   * @return node of type Node at key
+  /*Create array of mutexes of size that is sufficient for hashtable
+Combine get and set methods
+# threads squared
    */
-  virtual V get(const K& key) const {
-    
+public:
+
+   virtual V get(const K& key) const {
     std::size_t index = std::hash<K>{}(key) % this->capacity;
     index = index < 0 ? index + this->capacity : index;
     const Node<K,V>* node = this->table[index];
@@ -120,7 +118,6 @@ public:
 	      return node->value;
       node = node->next;
     }
-   
     return V();
   }
 
@@ -133,12 +130,10 @@ public:
     std::size_t index = std::hash<K>{}(key) % this->capacity;
     index = index < 0 ? index + this->capacity : index;
     Node<K,V>* node = this->table[index];
-
+    
     while (node != nullptr) {
       if (node->key == key) {
- 	      mut.lock();
 	      node->value = value;
-	      mut.unlock();
 	      return;
       }
       node = node->next;
@@ -152,9 +147,63 @@ public:
     if (((double)this->count)/this->capacity > this->loadFactor) {
       this->resize(this->capacity * 2);
     }
-   
   }
 
+
+  
+  //if value passed is -1, then get
+  //if value is not -1, set
+  virtual V getSet(const K& key, const V& value){
+
+
+    std::size_t index = std::hash<K>{}(key) % this->capacity;
+    index = index < 0 ? index + this->capacity : index;
+    Node<K,V>* node = this->table[index];
+    int bucket_temp = std::hash<K>{}(key) % this->capacity;
+
+    muts[bucket_temp].lock();
+    while (node != nullptr) {
+      if (node->key == key) {
+
+	if (value == -1) {
+	  return node->value;
+	} else {
+	  node->value = value;
+	  return -1;
+	}
+
+	
+      }
+
+      node = node->next;
+
+    }
+
+    if (value == -1) {
+      return V();
+    } else {
+       //if we get here, then the key has not been found
+      node = new Node<K,V>(key, value);
+      node->next = this->table[index];
+      this->table[index] = node;
+      this->count++;
+      if (((double)this->count)/this->capacity > this->loadFactor) {
+	this->resize(this->capacity * 2);
+      }
+
+    }
+    muts[bucket_temp].unlock();
+    return -1;
+  }
+
+  
+  /* void all_done() {
+    mut.lock();
+    //done = true;
+    cond.notify_all();
+    mut.unlock();
+    }*/
+  
   /**
    * deletes the node at given key
    * @param key key of node to be deleted

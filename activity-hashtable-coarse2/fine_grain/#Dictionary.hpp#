@@ -58,8 +58,8 @@ public:
    */
   virtual void set(const K& key, const V& value) = 0;
 
-  virtual V getSet(const K& key, const V& value) = 0;
 
+  virtual int getSet(constK& key, const V& value) = 0;
   
   /**
    * deletes the node at given key

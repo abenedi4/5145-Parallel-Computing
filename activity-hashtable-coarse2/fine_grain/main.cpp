@@ -52,9 +52,9 @@ void populate( Dictionary<std::string, int>& dict, std::vector<std::string>& fil
 
     for (auto & w : filecontent) {
       
-      int count = dict.get(w);
+      int count = dict.getSet(w, -1);
       ++count;
-      dict.set(w, count);
+      dict.getSet(w, count);
 
       
     }
@@ -62,7 +62,7 @@ void populate( Dictionary<std::string, int>& dict, std::vector<std::string>& fil
 
 }
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
   if (argc < 4) {
     std::cerr<<"usage: ./main <sources> <testword> <threshold>"<<std::endl;
