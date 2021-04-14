@@ -35,7 +35,7 @@ protected:
   int count;
   double loadFactor;
   std::vector<Node<K,V>*> table;
-  mutable std::array<std::mutex, 10000> muts; //make this array
+  mutable std::array<std::mutex, 100000> muts; //make this array
 
   
   struct hashtable_iter : public dict_iter {
