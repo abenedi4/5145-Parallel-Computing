@@ -21,6 +21,7 @@ float f4(float x, int intensity);
 #endif
 
 
+
 int main (int argc, char* argv[]) {
 
 
@@ -47,19 +48,30 @@ int main (int argc, char* argv[]) {
   float b = atof(argv[3]);
   int n = atoi(argv[4]);
   int intensity = atoi(argv[5]);
+  int nbthreads = atoi(argv[7]);
   SeqLoop sl;
   //Get time start
   auto start =std::chrono::steady_clock::now();
   
    float sum = 0;
-    
-  sl.parfor(0, n, 1,
-	    [&](int i) -> void{
-	          float x = (a + ((float)i + 0.5)) * ((b-a)/n);
-		  sum = sum + (float)funct_list[functionId - 1](x , intensity);
-	    }
+   //manage number of threads if unevenly divisble, and also pass in
+   //nbthreads and n to instance of seqloop
+   sl.manageThread(nbthreads, n);   
+   sl.parfor<float>(1,
+		    [&](float& tls) {
+		      tls = 0;
+		    },
+		    [&](int i, float& tls) {
+		      float x = (a + ((float)i + 0.5)) * ((b-a)/n);
+		     
+		      tls += (float)funct_list[functionId - 1](x , intensity);
+		    },
+		    [&](float& tls) {
+		     
+		      sum += tls;
+		    }
 	    );
-
+   //calculate answer after obtaining sum from parfor
   float answer = ((b-a)/n) * sum;
 
   //Get time end and calculate duration of time elapsed

@@ -82,7 +82,11 @@ public:
     nbthreads = numthread;
     n = num;
 
-    /*    if (((n/nbthreads) < 1) && (nbthreads > 1)) {
+    /*
+      Deleted this code since it was giving me errors :'D 
+      Not sure if we needed to do something along these lines, so hopefully that's okay
+
+    if (((n/nbthreads) < 1) && (nbthreads > 1)) {
       while (((n % nbthreads) != 0) && (nbthreads > 1)) {
 	nbthreads -= 1;
       }
