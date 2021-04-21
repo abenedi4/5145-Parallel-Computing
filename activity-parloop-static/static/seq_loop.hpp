@@ -4,12 +4,13 @@
 #include <functional>
 #include <thread>
 #include <vector>
-
+#include <mutex>
 class SeqLoop {
 public:
 
   int nbthreads;
   int n;
+  std::mutex mut;
   /// @brief execute the function f multiple times with different
   /// parameters possibly in parallel
   ///
@@ -51,14 +52,18 @@ public:
     size_t numiter = n/nbthreads;
     
 
-    //before method
-    before(tls);
+
 
     //create threads and partition work
     for (int j = 0; j < nbthreads; ++j) {
       threads.emplace_back(std::thread([&](size_t beg, size_t end) {
 					 for (size_t i=beg; i<end; i+= increment){
+					   //before method
+					   before(tls);
 					   f(i, tls);
+					   //after method
+					   std::lock_guard<std::mutex> lg(mut);
+					   after(tls);
 					 }
 				       }, (threads.size()*numiter), ((threads.size()+1)==nbthreads) ? n : ((threads.size() * numiter) + numiter)));
     }
@@ -66,8 +71,7 @@ public:
     for(auto& thread : threads){
       thread.join();
     }
-    //after method
-    after(tls);
+
   }
 
 

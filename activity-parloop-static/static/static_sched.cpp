@@ -62,17 +62,16 @@ int main (int argc, char* argv[]) {
 		      tls = 0;
 		    },
 		    [&](int i, float& tls) {
-		      float x = (a + ((float)i + 0.5)) * ((b-a)/n);
-		     
-		      tls += (float)funct_list[functionId - 1](x , intensity);
+		       float x = (a + ((float)i + 0.5)) * ((b-a)/n); 
+		       tls = tls + (float)funct_list[functionId - 1](x , intensity);
 		    },
 		    [&](float& tls) {
 		     
-		      sum += tls;
+		      sum = sum + tls;
 		    }
 	    );
    //calculate answer after obtaining sum from parfor
-  float answer = ((b-a)/n) * sum;
+   float answer = ((float)(b-a)/n) * sum;
 
   //Get time end and calculate duration of time elapsed
   auto stop = std::chrono::steady_clock::now();
