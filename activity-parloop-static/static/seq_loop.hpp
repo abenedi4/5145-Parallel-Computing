@@ -50,55 +50,38 @@ public:
     TLS tls;
     std::vector<std::thread> threads;
     size_t numiter = n/nbthreads;
-    
+   
 
 
+   
 
     //create threads and partition work
     for (int j = 0; j < nbthreads; ++j) {
+       //before method
+      before(tls);
+
       threads.emplace_back(std::thread([&](size_t beg, size_t end) {
-					 for (size_t i=beg; i<end; i+= increment){
-					   //before method
-					   before(tls);
-					   f(i, tls);
-					   //after method
-					   std::lock_guard<std::mutex> lg(mut);
-					   after(tls);
+					 for (size_t i=beg; i<end; i+= increment){					   
+					   f(i, tls);			  
 					 }
 				       }, (threads.size()*numiter), ((threads.size()+1)==nbthreads) ? n : ((threads.size() * numiter) + numiter)));
+
+      threads[j].join();
+      after(tls);
+
     }
-    //wait for threads to finish
-    for(auto& thread : threads){
-      thread.join();
-    }
+
 
   }
 
 
 
   /*passes in number of threads and n
-  adjust size of threads if:
-  1. There are more threads than num and num threads is greater than 1
-  2. n is not evenly divisible by num threads
   */
   void manageThread(int numthread, int num){
 
     nbthreads = numthread;
     n = num;
-
-    /*
-      Deleted this code since it was giving me errors :'D 
-      Not sure if we needed to do something along these lines, so hopefully that's okay
-
-    if (((n/nbthreads) < 1) && (nbthreads > 1)) {
-      while (((n % nbthreads) != 0) && (nbthreads > 1)) {
-	nbthreads -= 1;
-      }
-    } else if ((n % nbthreads) != 0) {
-      while (((n % nbthreads) != 0) && (nbthreads <= n)) {
-	nbthreads += 1;
-      }
-      }*/
 
   }
 
