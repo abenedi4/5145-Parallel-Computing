@@ -1,6 +1,6 @@
 #ifndef __SEQ_LOOP_H
 #define __SEQ_LOOP_H
-
+//#include <atomic>
 #include <functional>
 #include <thread>
 #include <vector>
@@ -10,7 +10,6 @@ public:
 
   int nbthreads;
   int n;
-  std::mutex mut;
   /// @brief execute the function f multiple times with different
   /// parameters possibly in parallel
   ///
@@ -48,6 +47,7 @@ public:
 	       std::function<void(TLS&)> after
 	       ) {
     TLS tls;
+
     std::vector<std::thread> threads;
     size_t numiter = n/nbthreads;
    
@@ -57,22 +57,29 @@ public:
 
     //create threads and partition work
     for (int j = 0; j < nbthreads; ++j) {
-       //before method
-      before(tls);
 
+      //before method
+      before(tls);
       threads.emplace_back(std::thread([&](size_t beg, size_t end) {
 					 for (size_t i=beg; i<end; i+= increment){					   
-					   f(i, tls);			  
+					   f(i, tls);
 					 }
-				       }, (threads.size()*numiter), ((threads.size()+1)==nbthreads) ? n : ((threads.size() * numiter) + numiter)));
+				       }, (j*numiter), ((j+1)==nbthreads) ? n : ((j * numiter) + numiter)));
 
-      threads[j].join();
-      after(tls);
 
     }
 
+    
+    //wait for threads to finish
+    for (auto& thread : threads){
+      thread.join();
+    }
+
+
+    after(tls);
 
   }
+  
 
 
 
@@ -83,6 +90,7 @@ public:
     nbthreads = numthread;
     n = num;
 
+   
   }
 
   

@@ -53,7 +53,7 @@ int main (int argc, char* argv[]) {
   //Get time start
   auto start =std::chrono::steady_clock::now();
   
-  float sum = 0;
+  std::vector<float> sum;
    //manage number of threads if unevenly divisble, and also pass in
    //nbthreads and n to instance of seqloop
    sl.manageThread(nbthreads, n);   
@@ -63,16 +63,21 @@ int main (int argc, char* argv[]) {
 		    },
 		    [&](int i, float& tls) {
 		      float x = (a + ((float)i + 0.5)) * ((float)(b-a)/n); 
-		       tls = tls + (float)funct_list[functionId - 1](x , intensity);
+		       tls += (float)funct_list[functionId - 1](x , intensity);
 		       
 		    },
 		    [&](float& tls) {
-		     
-		      sum = sum + tls; 
+		      sum.emplace_back(tls);
+		      
 		    }
 	    );
    //calculate answer after obtaining sum from parfor
-   float answer = ((float)(b-a)/n) * sum;
+   float final_sum = 0.0;
+   for(auto val : sum) {
+     //std::cout<<"val: "<<val<<"\n";
+     final_sum += val;
+   }
+   float answer = ((float)(b-a)/n) * final_sum;
 
   //Get time end and calculate duration of time elapsed
   auto stop = std::chrono::steady_clock::now();
