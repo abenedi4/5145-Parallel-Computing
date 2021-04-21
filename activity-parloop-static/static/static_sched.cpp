@@ -48,7 +48,7 @@ int main (int argc, char* argv[]) {
   float b = atof(argv[3]);
   int n = atoi(argv[4]);
   int intensity = atoi(argv[5]);
-  int nbthreads = atoi(argv[7]);
+  int nbthreads = atoi(argv[6]);
   SeqLoop sl;
   //Get time start
   auto start =std::chrono::steady_clock::now();
