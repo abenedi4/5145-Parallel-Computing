@@ -62,7 +62,7 @@ int main (int argc, char* argv[]) {
 		      tls = 0;
 		    },
 		    [&](int i, float& tls) {
-		       float x = (a + ((float)i + 0.5)) * ((b-a)/n); 
+		      float x = (a + ((float)i + 0.5)) * ((float)(b-a)/n); 
 		       tls = tls + (float)funct_list[functionId - 1](x , intensity);
 		    },
 		    [&](float& tls) {
