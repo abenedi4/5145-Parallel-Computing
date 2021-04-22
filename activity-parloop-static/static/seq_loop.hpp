@@ -7,9 +7,6 @@
 #include <mutex>
 class SeqLoop {
 public:
-
-  int nbthreads;
-  int n;
   /// @brief execute the function f multiple times with different
   /// parameters possibly in parallel
   ///
@@ -42,29 +39,32 @@ public:
   /// on the TLS object. No two thread can execute after at the same time.
   template<typename TLS>
   void parfor ( size_t increment,
+		int nbthreads,
+		int n,
 	       std::function<void(TLS&)> before,
 	       std::function<void(int, TLS&)> f,
 	       std::function<void(TLS&)> after
 	       ) {
-    TLS tls;
-
+    
+    TLS tls[nbthreads];
     std::vector<std::thread> threads;
     size_t numiter = n/nbthreads;
    
 
 
-   
-
+    for (int j = 0; j < nbthreads; ++j) {
+      before(std::ref(tls[j]));
+    }
     //create threads and partition work
     for (int j = 0; j < nbthreads; ++j) {
+    //before method
 
-      //before method
-      before(tls);
-      threads.emplace_back(std::thread([&](size_t beg, size_t end) {
+      threads.emplace_back(std::thread([&](size_t beg, size_t end, TLS& tls) {
 					 for (size_t i=beg; i<end; i+= increment){					   
 					   f(i, tls);
+					  
 					 }
-				       }, (j*numiter), ((j+1)==nbthreads) ? n : ((j * numiter) + numiter)));
+				       }, (j*numiter), ((j+1)==nbthreads) ? n : ((j * numiter) + numiter), std::ref(tls[j])));
 
 
     }
@@ -75,23 +75,12 @@ public:
       thread.join();
     }
 
-
-    after(tls);
-
+    for (int k = 0; k < nbthreads; ++k){
+      after(std::ref(tls[k]));
+    }
   }
   
 
-
-
-  /*passes in number of threads and n
-  */
-  void manageThread(int numthread, int num){
-
-    nbthreads = numthread;
-    n = num;
-
-   
-  }
 
   
 };
