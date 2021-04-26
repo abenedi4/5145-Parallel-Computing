@@ -68,9 +68,9 @@ public:
     //create threads
       for (int j = 0; j < nbthreads; ++j) {
 	threads.emplace_back(std::thread([&](int *tasksdone) {
-					   
+					   //Continue looping and assigning new tasks until tasks are done
 					   while(*tasksdone != numiter) {
-					     //std::cout<<"Tasks done: "<<*tasksdone<<"\n";
+					     //Create new task and set flag to not done
 					     bool done = false;
 					     newTask(tls[*tasksdone],
 						     tasksdone, f, tasks,
@@ -78,9 +78,9 @@ public:
 						     numiter, &done,
 						     increment, n);
 					     while (!done);
-					    
+					     //End of task once flag set to true
 					   }
-					 
+					   
 					 }, &tasksdone
 ));
 
@@ -96,8 +96,8 @@ public:
     for (auto& thread : threads){
       thread.join();
     }
-
-  for (auto& tlsobj : tls){
+    //Aggregate sum after threads are complete
+    for (auto& tlsobj : tls){
       after(std::ref(tlsobj));
   }
 
@@ -107,9 +107,10 @@ public:
 
   int selectIter(bool tasks[], int size, int *tasksdone, int granularity) {
 
-    std::lock_guard<std::mutex> lg(mut);
+   
     for (int i = 0; i <= size - granularity; i += granularity) {
       if (tasks[i] == false) {
+	std::lock_guard<std::mutex> lg(mut);
 	//Set iteration as taken
 	tasks[i] = true;
 	*tasksdone += 1;
@@ -136,11 +137,12 @@ public:
 	int beg = startingIter;
 	int end = beg + granularity;
 	
-	for (size_t i=beg; i<end; i+= increment){			                  f(i, temptls);
+	for (size_t i=beg; i<end; i+= increment){
+	  f(i, temptls);
 	  
 	}
 				      
-
+	//Set flag back in thread loop to true (done)
 	*done = true;
   }
   
