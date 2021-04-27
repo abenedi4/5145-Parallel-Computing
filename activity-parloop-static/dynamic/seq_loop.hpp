@@ -66,12 +66,12 @@ public:
     //create threads
      
       for (int j = 0; j < nbthreads; ++j) {
-	threads.emplace_back(std::thread([&](int *tasksdone, TLS& temptls) {
+	threads.emplace_back(std::thread([&](int *tasksdone) {
 					   //Continue looping and assigning new tasks until tasks are done
 					    do {
 					     //Create new task and set flag to not done
 					     bool done = false;
-					      newTask(temptls,
+					     newTask(std::ref(tls[*tasksdone]),
 						     tasksdone, f, tasks,
 						     granularity,
 						     numiter, &done,
@@ -81,7 +81,7 @@ public:
 					    }while(*tasksdone != granularity);
 
 					   
-					 }, &tasksdone, std::ref(tls[tasksdone])
+					 }, &tasksdone
 ));
 
       }
@@ -123,7 +123,7 @@ public:
   }
 
   template<typename TLS>
-  void newTask(TLS& temptls, int *tasksdone,
+  void newTask(std::reference_wrapper<TLS> temptls, int *tasksdone,
 	       std::function<void(int, TLS&)> f, bool tasks[], int granularity, int numiter, bool *done, size_t increment, int n) {
 
 
