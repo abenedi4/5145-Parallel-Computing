@@ -56,35 +56,37 @@ public:
 
     size_t numiter = n/granularity;
     bool tasks[n] = {false};
-    TLS tls[numiter];
-    //std::cout<<numiter<<" is num iter\n";
-    for (int k = 0; k < numiter; ++k) {
+    TLS tls[granularity];
 
+    //std::cout<<numiter<<" is num iter\n";
+    for (int k = 0; k < granularity; ++k) {
       before(std::ref(tls[k]));
 
     }
 
-    
     //create threads
+     
       for (int j = 0; j < nbthreads; ++j) {
-	threads.emplace_back(std::thread([&](int *tasksdone) {
+	threads.emplace_back(std::thread([&](int *tasksdone, TLS& temptls) {
 					   //Continue looping and assigning new tasks until tasks are done
-					   while(*tasksdone != numiter) {
+					    do {
 					     //Create new task and set flag to not done
 					     bool done = false;
-					     newTask(tls[*tasksdone],
+					      newTask(temptls,
 						     tasksdone, f, tasks,
 						     granularity,
 						     numiter, &done,
 						     increment, n);
 					     while (!done);
 					     //End of task once flag set to true
-					   }
+					    }while(*tasksdone != granularity);
+
 					   
-					 }, &tasksdone
+					 }, &tasksdone, std::ref(tls[tasksdone])
 ));
 
       }
+
      
 			        
   
@@ -106,15 +108,13 @@ public:
   
 
   int selectIter(bool tasks[], int size, int *tasksdone, int granularity) {
-
    
-    for (int i = 0; i <= size - granularity; i += granularity) {
+    std::lock_guard<std::mutex> lg(mut);
+    for (int i = 0; i < size; i += (size / granularity)) {
       if (tasks[i] == false) {
-	std::lock_guard<std::mutex> lg(mut);
 	//Set iteration as taken
 	tasks[i] = true;
 	*tasksdone += 1;
-
 	//Return index of selected task
 	return i;
       }
@@ -124,7 +124,7 @@ public:
   }
 
   template<typename TLS>
-  void newTask(TLS &temptls, int *tasksdone,
+  void newTask(TLS& temptls, int *tasksdone,
 	       std::function<void(int, TLS&)> f, bool tasks[], int granularity, int numiter, bool *done, size_t increment, int n) {
 
 
@@ -135,8 +135,7 @@ public:
 
 	//Get begining and end iterations for thread
 	int beg = startingIter;
-	int end = beg + granularity;
-	
+	int end = beg + numiter;
 	for (size_t i=beg; i<end; i+= increment){
 	  f(i, temptls);
 	  
