@@ -98,6 +98,10 @@ public:
     for (auto& thread : threads){
       thread.join();
     }
+
+    for (auto& val : tls) {
+      std::cout<<"Value is: "<<val<<"\n";
+    }
     //Aggregate sum after threads are complete
     for (int k = 0; k < granularity; ++k){
       after(std::ref(tls[k]));
@@ -136,6 +140,7 @@ public:
 	//Get begining and end iterations for thread
 	int beg = startingIter;
 	int end = beg + numiter;
+	std::cout<<"beg: "<<beg<<"\n";
 	for (size_t i=beg; i<end; i+= increment){
 	  f(i, temptls);
 	  
