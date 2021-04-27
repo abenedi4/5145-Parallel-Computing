@@ -45,9 +45,9 @@ public:
 		int nbthreads,
 		int n,
 		int granularity,
-	       std::function<void(TLS&)> before,
-	       std::function<void(int, TLS&)> f,
-	       std::function<void(TLS&)> after
+	       std::function<void(std::reference_wrapper<TLS>)> before,
+	       std::function<void(int, std::reference_wrapper<TLS>)> f,
+	       std::function<void(std::reference_wrapper<TLS>)> after
 	       ) {
     
     int tasksdone = 0;
@@ -71,6 +71,7 @@ public:
 					    do {
 					     //Create new task and set flag to not done
 					     bool done = false;
+					     
 					     newTask(std::ref(tls[*tasksdone]),
 						     tasksdone, f, tasks,
 						     granularity,
@@ -124,7 +125,7 @@ public:
 
   template<typename TLS>
   void newTask(std::reference_wrapper<TLS> temptls, int *tasksdone,
-	       std::function<void(int, TLS&)> f, bool tasks[], int granularity, int numiter, bool *done, size_t increment, int n) {
+	       std::function<void(int, std::reference_wrapper<TLS>)> f, bool tasks[], int granularity, int numiter, bool *done, size_t increment, int n) {
 
 
     //Find available iteration
