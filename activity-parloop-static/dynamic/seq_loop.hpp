@@ -51,7 +51,6 @@ public:
 	       ) {
     
     int tasksdone = 0;
-    // std::vector<TLS> tls;
     std::vector<std::thread> threads;
 
     size_t numiter = n/granularity;
@@ -99,8 +98,8 @@ public:
       thread.join();
     }
     //Aggregate sum after threads are complete
-    for (auto& tlsobj : tls){
-      after(std::ref(tlsobj));
+    for (int k = 0; k < granularity; ++k){
+      after(std::ref(tls[k]));
   }
 
 
