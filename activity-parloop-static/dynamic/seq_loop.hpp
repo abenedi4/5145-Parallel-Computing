@@ -55,10 +55,10 @@ public:
 
     size_t numiter = n/granularity;
     bool tasks[n] = {false};
-    TLS tls[granularity];
+    TLS tls[n];
 
     //std::cout<<numiter<<" is num iter\n";
-    for (int k = 0; k < granularity; ++k) {
+    for (int k = 0; k < n; ++k) {
       before(std::ref(tls[k]));
 
     }
@@ -72,12 +72,12 @@ public:
 					   for (int iter = 0; iter < n; ++iter) {
 					     //Create new task and set flag to not done
 					     bool done = false;
-					     
-					     int flag = newTask(std::ref(tls[iter]),
-						     f, tasks,
-						     granularity,
+					     int startingIter = selectIter(tasks, n,  granularity);
+					     int flag = newTask(std::ref(tls[startingIter]),
+						     startingIter,
+						     f,
 						     numiter, &done,
-						     increment, n);
+						     increment);
 					     if (flag == -1) break;
 					     while (!done);
 					     //End of task once flag set to true
@@ -102,7 +102,7 @@ public:
     }
 
     //Aggregate sum after threads are complete
-    for (int k = 0; k < granularity; ++k){
+    for (int k = 0; k < n; ++k){
       after(std::ref(tls[k]));
   }
 
@@ -128,13 +128,13 @@ public:
   }
 
   template<typename TLS>
-  int newTask(std::reference_wrapper<TLS> temptls,
-	       std::function<void(int, std::reference_wrapper<TLS>)> f, bool tasks[], int granularity, int numiter, bool *done, size_t increment, int n) {
+  int newTask(std::reference_wrapper<TLS> temptls, int startingIter,
+	      std::function<void(int, std::reference_wrapper<TLS>)> f, int numiter, bool *done, size_t increment) {
 
 
     //Find available iteration
 
-    int startingIter = selectIter(tasks, n,  granularity);
+
    
 
 	//Get begining and end iterations for thread
