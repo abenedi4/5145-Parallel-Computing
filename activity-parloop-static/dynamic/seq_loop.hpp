@@ -9,7 +9,7 @@
 class SeqLoop {
 public:
   std::mutex mut;
-
+  int tasksdone = 0;
   /// @brief execute the function f multiple times with different
   /// parameters possibly in parallel
   ///
@@ -50,7 +50,7 @@ public:
 	       std::function<void(std::reference_wrapper<TLS>)> after
 	       ) {
     
-    int tasksdone = 0;
+
     std::vector<std::thread> threads;
 
     size_t numiter = n/granularity;
@@ -66,30 +66,32 @@ public:
     //create threads
      
       for (int j = 0; j < nbthreads; ++j) {
-	threads.emplace_back(std::thread([&](int *tasksdone) {
+	threads.emplace_back(std::thread([&]() {
 					   //Continue looping and assigning new tasks until tasks are done
-					    do {
+					   
+					   for (int iter = 0; iter < n; ++iter) {
 					     //Create new task and set flag to not done
 					     bool done = false;
 					     
-					     newTask(std::ref(tls[*tasksdone]),
-						     tasksdone, f, tasks,
+					     int flag = newTask(std::ref(tls[iter]),
+						     f, tasks,
 						     granularity,
 						     numiter, &done,
 						     increment, n);
+					     if (flag == -1) break;
 					     while (!done);
 					     //End of task once flag set to true
-					    }while(*tasksdone != granularity);
+					     
+					   }
 
 					   
-					 }, &tasksdone
+					 }
 ));
 
       }
 
      
 			        
-  
 
   
 
@@ -99,9 +101,6 @@ public:
       thread.join();
     }
 
-    for (auto& val : tls) {
-      std::cout<<"Value is: "<<val<<"\n";
-    }
     //Aggregate sum after threads are complete
     for (int k = 0; k < granularity; ++k){
       after(std::ref(tls[k]));
@@ -111,14 +110,15 @@ public:
 }
   
 
-  int selectIter(bool tasks[], int size, int *tasksdone, int granularity) {
+
+  
+  int selectIter(bool tasks[], int size, int granularity) {
    
     std::lock_guard<std::mutex> lg(mut);
     for (int i = 0; i < size; i += (size / granularity)) {
       if (tasks[i] == false) {
 	//Set iteration as taken
 	tasks[i] = true;
-	*tasksdone += 1;
 	//Return index of selected task
 	return i;
       }
@@ -128,19 +128,19 @@ public:
   }
 
   template<typename TLS>
-  void newTask(std::reference_wrapper<TLS> temptls, int *tasksdone,
+  int newTask(std::reference_wrapper<TLS> temptls,
 	       std::function<void(int, std::reference_wrapper<TLS>)> f, bool tasks[], int granularity, int numiter, bool *done, size_t increment, int n) {
 
 
     //Find available iteration
 
-    int startingIter = selectIter(tasks, n, tasksdone, granularity);
+    int startingIter = selectIter(tasks, n,  granularity);
    
 
 	//Get begining and end iterations for thread
 	int beg = startingIter;
 	int end = beg + numiter;
-	std::cout<<"beg: "<<beg<<"\n";
+	//std::cout<<"beg: "<<beg<<"\n";
 	for (size_t i=beg; i<end; i+= increment){
 	  f(i, temptls);
 	  
@@ -148,6 +148,7 @@ public:
 				      
 	//Set flag back in thread loop to true (done)
 	*done = true;
+	return startingIter;
   }
   
   
