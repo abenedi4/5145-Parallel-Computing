@@ -1,0 +1,12 @@
+After using fine-grained synchronization in the hash table data structure, 
+I was able to get a much higher speedup. The speedup of my implementation of 
+fine-grained synchronization varied from 3 as the max to a bit below 3, depending 
+on the number of processors. Since the speedup was expected to be between 3 and 4, I was 
+hoping for it to be a little bit higher, but it did reach the 3 mark as the maximum speedup. I think this
+may be effected by the number of mutexes I created in my mutex array, as I originally had 
+less mutexes and resulted in a lesser speedup, then added more and seemed to have a more steady
+increase of speedup based on # processors.
+
+Update:
+I tested again with an even larger array of mutexes and got speedup to be
+more steadily at 3 with a max of 3.5.
