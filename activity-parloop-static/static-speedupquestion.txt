@@ -1,0 +1,7 @@
+After running make plot on the results of my parallel for-loop static scheduling code, I believe that the speedup 
+looks correct. As the number of threads increase as well as the intensity, there is a gradual increase in speedup. 
+This makes sense since with each thread, the amount of work is partitioned, thus decreasing the amount of 
+compile time needed. Furthermore, the speedup is also more apparent with a larger n value. This is because there 
+are more iterations to complete, so the speedup will drastically improve with more threads to distribute this work. 
+With smaller n values (i.e. 1-100), the speedup is not as drastic because
+even with a large number of threads, there is only so much work to complete (causing a plateau effect).
