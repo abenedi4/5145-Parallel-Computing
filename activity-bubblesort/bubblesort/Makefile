@@ -8,7 +8,7 @@ all: bubblesort
 
 
 bubblesort: bubblesort.o
-	$(LD) $(LDFLAGS) bubblesort.o $(ARCHIVES) -o bubblesort
+	$(LD) $(LDFLAGS) bubblesort.o $(ARCHIVES) -o bubblesort -pthread
 
 test: bubblesort
 	./test.sh
