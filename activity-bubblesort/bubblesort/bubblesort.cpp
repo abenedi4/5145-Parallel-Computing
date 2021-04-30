@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include "seq_loop.hpp"
 #include <pthread.h>
+#include <omp.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -23,6 +24,19 @@ void swap(int arr[], int i, int j) {
   arr[j] = temp;
   
 }
+
+bool check(int arr[], int n) {
+
+  for (int i = 0; i < n-1; ++i) {
+    if (arr[i] > arr[i+1]) {
+      return true;
+    }
+
+  }
+  return false;
+
+}
+
 
 int main (int argc, char* argv[]) {
   if (argc < 3) { std::cerr<<"usage: "<<argv[0]<<" <n> <nbthreads>"<<std::endl;
@@ -50,13 +64,15 @@ int main (int argc, char* argv[]) {
   int swapped  = 0;
   int counter = 0;
   bool even = true;
-  while (counter < 2)  {
-    //Only exit while loop after two iterations of no-swapping occurs
+  
+  while (counter < 3)  {
+    //Only exit while loop after 3 iterations of no-swapping occurs
     //This is because we alternate between even/odd
-    counter = (swapped == 0) ? (counter + 1) : counter;
-    swapped = 0;
+  counter = (swapped == 0) ? (counter + 1) : counter;
+  swapped = 0;
+
     int startingIndex = even ? 0 : 1;
-    sl.parfor<int>(1, nbthreads, n, startingIndex,
+    sl.parfor<int>(2, nbthreads, n, startingIndex,
 		   [&](int& tls, int j) {
 		      tls = arr[j];
 		    },
@@ -77,9 +93,10 @@ int main (int argc, char* argv[]) {
     even = !even;
   }
 
+
+
   std::chrono::time_point<std::chrono::system_clock> end = std::chrono::system_clock::now();
   std::chrono::duration<double> elpased_seconds = end-start;
-
 
 
 
@@ -90,3 +107,5 @@ int main (int argc, char* argv[]) {
 
   return 0;
 }
+
+
