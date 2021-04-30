@@ -6,7 +6,7 @@ LD=g++
 all: lcs
 
 lcs: lcs.o
-	$(LD) $(LDFLAGS) lcs.o $(ARCHIVES) -o lcs
+	$(LD) $(LDFLAGS) lcs.o $(ARCHIVES) -o lcs -pthread
 
 test: lcs
 	./test.sh
