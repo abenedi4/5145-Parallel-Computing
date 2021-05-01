@@ -40,70 +40,70 @@ public:
   /// on the TLS object. No two thread can execute after at the same time.
   template<typename TLS>
   void parfor ( size_t increment,
-		int nbthreads, int m, int n,
+		int nbthreads, int m, int n, 
 		std::function<void(std::vector< std::vector < TLS > >&, int)> before,
-		std::function<void(int, int, int, std::vector< std::vector < TLS > >&)> f,
+		std::function<void(int, int, std::vector< std::vector < TLS > >&)> f,
 	       std::function<void(std::vector< std::vector < TLS > >&)> after
 	       ) {
+    std::vector< std::vector < TLS > > tls((m+1), std::vector < TLS >((n+1)));
     
-    std::vector< std::vector < TLS > > tls((m+1), std::vector < TLS >(n+1));
-    std::vector<std::thread> threads;
-    size_t numiter = n/nbthreads;
-   
-
-
     for (int j = 0; j <= m; ++j) {
       before(tls, j);
     }
 
-    /*
-  for (int a=1; a<=m; ++a) {
-    for (int b=1; b<=n; ++b) {
-      if (X[a-1] == Y[b-1]) {
-     */
-    //x < length of Y or b, z < length of X or a
-    int z = 1;
-    for (int x = 1; x <= n && z <= m; ++x) {
-      //create threads and partition work
-      for (int j = 0; j < nbthreads; ++j) {
-	//before method
 
+    //Set row and iterate over columns
+    //Row will iterate after we reach max column (once we are done iterating
+    //antidiagonals over horizontally, move downwards over rows
+    int row = 1;
+    for (int col=1; col<=n && row <= m; ++col) {
+
+      //Create local vector to store threads temporarily
+      std::vector<std::thread> threads;
+
+      //Get size of the diagonal to iterate over and partition between
+      //number of possible threads
+      int rowSize = (m == row) ? 1 : (m - row);
+      int iterSize = std::min(col, rowSize);
+      int tempNbThrds = (nbthreads > iterSize) ? iterSize : nbthreads;
+      int numiter = iterSize / tempNbThrds;
+
+      //Create threads and iterate over the diagonal
+      for (int j = 0; j < tempNbThrds; ++j) {
+	
+	int temp_beg = j * numiter;
+	int temp_end = ((j + 1) == tempNbThrds) ? iterSize : (temp_beg + numiter);
+	
 	threads.emplace_back(std::thread([&](size_t beg, size_t end) {
-					   for (size_t i=beg; i<end; i+= increment){					   
-					     f(i, x, z, tls);
-					  
+					   for (size_t i=beg; i<end; i+= increment){
+					     int temp_col = col - i;
+					     int temp_row = row + i;
+					     
+					       f(temp_row, temp_col, tls);
 					   }
-					 }, 0, getEnd(m, x, z)
+					 }, temp_beg, temp_end
 	    ));
 
 
       }
-      //If x hits boundary, move to next row
-      if ( x+1 == n && z < m){
-	x--;
-	z++;
+      //wait for threads to finish current antidiagonal
+      for (auto& thread : threads){
+	if(thread.joinable()){
+	  thread.join();
+	}
       }
-    }
+
+      //If we have reached the max # columns, start iterating rows
+      if ( col == n ) {
+	col--;
+	row++;
+      }    
+     }
+
+      after(tls);
+      
+
     
-    //wait for threads to finish
-    for (auto& thread : threads){
-      thread.join();
-    }
-
-
-    after(tls);
-    
-  }
-  
-
-  int getEnd(int m, int x, int z) {
-    std::cout<<"In get end\n";
-    //get new bound for end iteration
-    if (x < (m - z)) {
-      return x + 1;
-    } else {
-      return (m-z) + 1;
-    }
   }
 
   
