@@ -7,7 +7,7 @@ LD=g++
 all: prefixsum
 
 prefixsum: prefixsum.o
-	$(LD) $(LDFLAGS) prefixsum.o $(ARCHIVES) -o prefixsum
+	$(LD) $(LDFLAGS) prefixsum.o $(ARCHIVES) -o prefixsum -pthread
 
 test: prefixsum
 	./test.sh

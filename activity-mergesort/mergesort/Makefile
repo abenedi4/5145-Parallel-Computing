@@ -8,7 +8,7 @@ all: mergesort
 
 
 mergesort: mergesort.o
-	$(LD) $(LDFLAGS) mergesort.o $(ARCHIVES) -o mergesort
+	$(LD) $(LDFLAGS) mergesort.o $(ARCHIVES) -o mergesort -pthread
 
 test: mergesort
 	./test.sh

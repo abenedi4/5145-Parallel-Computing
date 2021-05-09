@@ -33,7 +33,7 @@ int main (int argc, char* argv[]) {
   int * arr = new int [n];
 
   generatePrefixSumData (arr, n);
-  
+
   
   std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
   

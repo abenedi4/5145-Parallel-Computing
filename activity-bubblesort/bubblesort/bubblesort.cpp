@@ -72,7 +72,7 @@ int main (int argc, char* argv[]) {
   swapped = 0;
 
     int startingIndex = even ? 0 : 1;
-    sl.parfor<int>(2, nbthreads, n, startingIndex,
+    sl.parfor<int>(1, nbthreads, n, startingIndex,
 		   [&](int& tls, int j) {
 		      tls = arr[j];
 		    },
