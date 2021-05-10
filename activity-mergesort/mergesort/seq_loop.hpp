@@ -56,13 +56,13 @@ public:
     
     //create threads and partition work
     for (int j = 0; j < nbthreads; j++) {
-      
-      threads.emplace_back(std::thread([&](int temp) {
+      int curval = j;
+      threads.emplace_back(std::thread([&](int cur) {
 					 for (size_t i=0; i<(n/nbthreads)-1; i += increment){				  
-					   f(i, tls, threads.size());
+					   f(i, tls, cur);
 					  
 					 }
-				       }, j
+				       }, curval
 	  ));
 
 
